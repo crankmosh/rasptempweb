@@ -1,0 +1,79 @@
+<!DOCTYPE HTML>
+<html>
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+        <title>Garage Temperature 24 Hour Chart</title>
+	<link rel="stylesheet" href="styles/main.css">
+        <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
+        <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/highcharts/2.3.1/highcharts.js"></script>
+        <script type="text/javascript">
+            $(function () {
+                $(document).ready(function() {
+
+                    $.ajax({
+                        type: "GET",
+                        url: "data/temps24h.xml",
+                        dataType: "xml",
+                        success: function(xml) {
+
+                            Highcharts.setOptions({global:{useUTC:false}});
+                            options={chart:{renderTo:"containerxxx",type:"spline"},title:{text:""},subtitle:{text:""},xAxis:{type:"datetime",dateTimeLabelFormats:{hour:"%H. %M"}},yAxis:{title:{text:"T (°C)"}},tooltip:{formatter:function(){return"<b>"+this.series.name+"</b><br/>"+Highcharts.dateFormat("%H:%M",this.x)+": "+this.y.toFixed(1)+"°C"}},plotOptions:{series:{marker:{radius:2}}},lineWidth:1,series:[]}
+  
+                            var series = []
+                            //alert('start');
+
+                            //define series
+                            $(xml).find("entry").each(function() {
+                                var seriesOptions = {
+                                    name: $(this).text(),
+                                    data: []
+                                };
+                                options.series.push(seriesOptions);
+                            });
+                            //alert('finish part 1');
+
+                            //populate with data
+                            $(xml).find("row").each(function() {
+                                var t = parseInt($(this).find("t").text()) * 1000
+
+                                $(this).find("v").each(function(index) {
+                                    var v = parseFloat($(this).text())
+                                    v = v || null
+                                    if (v != null) {
+                                        //alert('index = ' + index + 'time=' + t + 'v=' + v);
+                                        options.series[index].data.push([t, v])
+                                    };
+                                });
+                            });
+                            //alert('finish part 2');
+
+                            options.title.text = "Temperatures of the last 24h"
+                            $.each(series, function(index) {
+                                options.series.push(series[index]);
+                            });
+                            //alert('finish part 3');
+
+                            chart = new Highcharts.Chart(options);
+                        }
+                    });
+                });
+            });
+
+        </script>
+
+        <script src="http://code.highcharts.com/highcharts.js"></script>
+        <script src="http://code.highcharts.com/modules/exporting.js"></script>
+
+        <!-- Additional files for the Highslide popup effect -->
+        <script type="text/javascript" src="http://www.highcharts.com/highslide/highslide-full.min.js"></script>
+        <script type="text/javascript" src="http://www.highcharts.com/highslide/highslide.config.js" charset="utf-8"></script>
+        <link rel="stylesheet" type="text/css" href="http://www.highcharts.com/highslide/highslide.css" />
+
+    <div id="containerxxx" style="min-width: 400px; height: 400px; margin: 0 auto"></div>
+<div id="menu">
+    <a href="static.html">Static Graphs</a> | <a href="index.html">Home</a> | <a href="hc3.html">Last 3 hours</a> | <a href="hc24.html">Last 24 hours</a> |
+   <a href="hc1w.html">Last 1 week</a>
+</div>
+
+</body>
+</html>
